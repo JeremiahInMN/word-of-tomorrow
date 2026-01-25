@@ -13,6 +13,8 @@
    - Built auth context system with React Context API
    - Fixed race conditions and AbortError issues by creating dedicated auth client
    - Cleaned up debug logging
+   - **Committed to git:** Auth system committed (commit hash: 1190f67)
+   - Added SESSION_NOTES.md for context recovery
 
 ### Technical Decisions Made
 
@@ -80,6 +82,15 @@
 ---
 
 ## Known Issues / Technical Debt
+
+### Uncommitted Changes (From Previous Sessions)
+There are uncommitted changes in the working directory that predate this session:
+- `components/WordCard.tsx`, `pages/AdminPage.tsx`, `pages/HomePage.tsx`
+- `services/gemini.ts`, `services/store.ts`
+- `package.json`, `vite.config.ts`
+- Untracked files: `SETUP.md`, `CalendarView.tsx`, `UsageStatsCard.tsx`, etc.
+
+**Action:** Review these changes in a future session to determine if they should be committed.
 
 ### Resolved ✅
 - ~~AbortError during OAuth callback~~ - Fixed with dedicated authClient

@@ -6,10 +6,11 @@ export interface WordDefinition {
   definition: string;
   example: string;
   origin: string;
-  illustrationUrl?: string; // Base64 or URL
-  audioBase64?: string; // Raw PCM data base64 encoded
+  illustrationUrl?: string; // Supabase Storage URL
+  audioUrl?: string; // Supabase Storage URL for audio
+  audioBase64?: string; // DEPRECATED: Raw PCM data base64 encoded
   createdAt: string;
-  scheduledDate: string; // YYYY-MM-DD
+  scheduledDate: string | null; // YYYY-MM-DD or NULL for unassigned
   status: 'draft' | 'published' | 'archived';
   votes: number;
 }
@@ -40,4 +41,20 @@ export enum SchemaType {
   BOOLEAN = 'BOOLEAN',
   ARRAY = 'ARRAY',
   OBJECT = 'OBJECT'
+}
+
+// Auth types
+export interface User {
+  id: string;
+  email: string;
+  is_admin: boolean;
+  created_at: string;
+}
+
+export interface AuthContextType {
+  user: User | null;
+  isAdmin: boolean;
+  loading: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
 }

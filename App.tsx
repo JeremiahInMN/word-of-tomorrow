@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { BookOpen, Users, Shield, Sun, Moon } from 'lucide-react';
+import { BookOpen, Users, Shield, Sun, Moon, LogOut } from 'lucide-react';
 import { HomePage } from './pages/HomePage';
 import { AdminPage } from './pages/AdminPage';
 import { CommunityPage } from './pages/CommunityPage';
+import { ArchivePage } from './pages/ArchivePage';
+import { LoginPage } from './pages/LoginPage';
 import { initializeStore } from './services/store';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 const NavBar = ({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: () => void }) => {
   const location = useLocation();
+  const { user, isAdmin, signOut } = useAuth();
   const isActive = (path: string) => location.pathname === path ? 'text-accent font-bold' : 'text-ink/60 hover:text-ink';
 
   return (
@@ -21,24 +26,47 @@ const NavBar = ({ theme, toggleTheme }: { theme: 'light' | 'dark', toggleTheme: 
           
           <div className="flex items-center gap-6">
             <div className="hidden sm:flex space-x-8">
-              <Link to="/" className={`flex items-center gap-2 text-sm transition-colors ${isActive('/')}`}>
-                <BookOpen size={16} /> Dictionary
-              </Link>
-              <Link to="/community" className={`flex items-center gap-2 text-sm transition-colors ${isActive('/community')}`}>
+              {/* Community page hidden for now */}
+              {/* <Link to="/community" className={`flex items-center gap-2 text-sm transition-colors ${isActive('/community')}`}>
                 <Users size={16} /> Community
-              </Link>
-              <Link to="/admin" className={`flex items-center gap-2 text-sm transition-colors ${isActive('/admin')}`}>
-                <Shield size={16} /> Admin
-              </Link>
+              </Link> */}
+              {/* Only show Admin link to admin users */}
+              {isAdmin && (
+                <Link to="/admin" className={`flex items-center gap-2 text-sm transition-colors ${isActive('/admin')}`}>
+                  <Shield size={16} /> Admin
+                </Link>
+              )}
             </div>
             
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-ink/5 text-ink/80 hover:text-ink transition-colors"
-              title={theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}
-            >
-              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={toggleTheme}
+                className="p-2 rounded-full hover:bg-ink/5 text-ink/80 hover:text-ink transition-colors"
+                title={theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              >
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
+              
+              {/* Show Sign In link when not authenticated, Sign Out when authenticated */}
+              {user ? (
+                <button
+                  onClick={signOut}
+                  className="flex items-center gap-2 text-sm text-ink/60 hover:text-ink transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut size={16} />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 text-sm text-ink/60 hover:text-ink transition-colors"
+                >
+                  <LogOut size={16} className="rotate-180" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -84,21 +112,34 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <div className="min-h-screen flex flex-col font-sans text-ink transition-colors duration-300">
-        <NavBar theme={theme} toggleTheme={toggleTheme} />
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/community" element={<CommunityPage />} />
-          </Routes>
-        </main>
-        <footer className="border-t border-ink/10 py-8 mt-12 bg-surface/50">
-          <div className="max-w-5xl mx-auto px-4 text-center text-sm text-ink/40">
-            <p>© {new Date().getFullYear()} Word of Tomorrow. Not a real dictionary.</p>
-          </div>
-        </footer>
-      </div>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col font-sans text-ink transition-colors duration-300">
+          <NavBar theme={theme} toggleTheme={toggleTheme} />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/archive" element={<ArchivePage />} />
+              <Route path="/archive/:date" element={<ArchivePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute>
+                    <AdminPage />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* Community page hidden for now */}
+              {/* <Route path="/community" element={<CommunityPage />} /> */}
+            </Routes>
+          </main>
+          <footer className="border-t border-ink/10 py-8 mt-12 bg-surface/50">
+            <div className="max-w-5xl mx-auto px-4 text-center text-sm text-ink/40">
+              <p>© {new Date().getFullYear()} Word of Tomorrow. Not a real dictionary.</p>
+            </div>
+          </footer>
+        </div>
+      </AuthProvider>
     </HashRouter>
   );
 };

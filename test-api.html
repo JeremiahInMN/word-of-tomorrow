@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gemini API Test</title>
+</head>
+<body>
+    <h1>Gemini API Key Test</h1>
+    <button onclick="testAPI()">Test API Key</button>
+    <pre id="result"></pre>
+    
+    <script type="module">
+        import { GoogleGenAI } from 'https://esm.sh/@google/genai@^1.38.0';
+        
+        window.testAPI = async function() {
+            const result = document.getElementById('result');
+            result.textContent = 'Testing...';
+            
+            // Replace with your actual API key
+            const API_KEY = 'YOUR_API_KEY_HERE';
+            
+            if (!API_KEY || API_KEY === 'YOUR_API_KEY_HERE') {
+                result.textContent = 'ERROR: Please replace YOUR_API_KEY_HERE with your actual API key in the HTML file';
+                return;
+            }
+            
+            try {
+                const ai = new GoogleGenAI({ apiKey: API_KEY });
+                
+                const response = await ai.models.generateContent({
+                    model: "gemini-1.5-flash",
+                    contents: "Say hello in one word"
+                });
+                
+                result.textContent = 'SUCCESS!\n\n' + JSON.stringify(response, null, 2);
+            } catch (error) {
+                result.textContent = 'ERROR:\n\n' + JSON.stringify({
+                    message: error.message,
+                    status: error.status,
+                    statusText: error.statusText,
+                    details: error
+                }, null, 2);
+            }
+        }
+    </script>
+</body>
+</html>

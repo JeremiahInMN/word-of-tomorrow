@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Archive } from 'lucide-react';
 import { WordCard } from '../components/WordCard';
 import { fetchWords } from '../services/store';
 import { WordDefinition } from '../types';
@@ -63,7 +65,20 @@ export const HomePage: React.FC = () => {
       </div>
 
       {featuredWord ? (
-        <WordCard wordData={featuredWord} />
+        <>
+          <WordCard wordData={featuredWord} />
+          
+          {/* Archive Link */}
+          <div className="max-w-4xl mx-auto mt-8 text-center">
+            <Link 
+              to="/archive"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-ink/10 hover:border-accent hover:bg-accent/5 text-ink font-medium transition-all duration-300 shadow-sm hover:shadow-md"
+            >
+              <Archive size={20} />
+              View Past Words
+            </Link>
+          </div>
+        </>
       ) : (
         <div className="text-center py-20 opacity-50 border-2 border-dashed border-ink/10 rounded-lg max-w-2xl mx-auto">
           <p className="font-serif italic text-xl">The oracle is silent for tomorrow.</p>

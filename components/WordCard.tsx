@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Volume2, Share2, Info, Maximize2, X } from 'lucide-react';
+import { Share2, Volume2, Pause, Info, Maximize2, X } from 'lucide-react';
 import { WordDefinition } from '../types';
-import { playAudio } from '../services/gemini';
 
 interface WordCardProps {
   wordData: WordDefinition;
@@ -10,11 +9,30 @@ interface WordCardProps {
 
 export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
-  const handlePlayAudio = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (wordData.audioBase64) {
-      playAudio(wordData.audioBase64);
+  const handlePlayAudio = () => {
+    if (!wordData.audioUrl) return;
+    
+    if (audioElement) {
+      if (isPlaying) {
+        audioElement.pause();
+        setIsPlaying(false);
+      } else {
+        audioElement.play();
+        setIsPlaying(true);
+      }
+    } else {
+      const audio = new Audio(wordData.audioUrl);
+      audio.addEventListener('ended', () => setIsPlaying(false));
+      audio.addEventListener('error', () => {
+        console.error('Error loading audio');
+        setIsPlaying(false);
+      });
+      audio.play();
+      setIsPlaying(true);
+      setAudioElement(audio);
     }
   };
 
@@ -36,19 +54,20 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
             </div>
             
             <div className="flex gap-2 mt-6 sm:mt-0">
-               <button 
+              {wordData.audioUrl && (
+                <button 
                   onClick={handlePlayAudio}
-                  disabled={!wordData.audioBase64}
-                  className="p-3 rounded-full hover:bg-ink/5 text-ink transition-colors disabled:opacity-30 disabled:cursor-not-allowed h-fit"
+                  className={`p-3 rounded-full hover:bg-ink/5 text-ink transition-colors h-fit ${isPlaying ? 'bg-accent/10' : ''}`}
                   title="Listen to pronunciation"
-               >
-                 <Volume2 size={24} />
-               </button>
-               {!preview && (
-                   <button className="p-3 rounded-full hover:bg-ink/5 text-ink transition-colors h-fit">
-                     <Share2 size={24} />
-                   </button>
-               )}
+                >
+                  {isPlaying ? <Pause size={24} /> : <Volume2 size={24} />}
+                </button>
+              )}
+              {!preview && (
+                <button className="p-3 rounded-full hover:bg-ink/5 text-ink transition-colors h-fit">
+                  <Share2 size={24} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -79,9 +98,9 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
               {/* Right: Illustration (2/5 width) */}
               <div className="md:col-span-2">
                   <button 
-                      onClick={() => setIsExpanded(true)}
+                      onClick={() => wordData.illustrationUrl && setIsExpanded(true)}
                       disabled={!wordData.illustrationUrl}
-                      className="group relative w-full aspect-square bg-paper rounded border border-ink/10 flex items-center justify-center p-4 overflow-hidden cursor-zoom-in hover:border-accent/30 hover:shadow-md transition-all duration-300"
+                      className="group relative w-full aspect-square bg-paper rounded border border-ink/10 flex items-center justify-center p-4 overflow-hidden cursor-zoom-in hover:border-accent/30 hover:shadow-md transition-all duration-300 disabled:cursor-default"
                   >
                       {wordData.illustrationUrl ? (
                           <>

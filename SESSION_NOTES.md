@@ -16,6 +16,12 @@
    - **Committed to git:** Auth system committed (commit hash: 1190f67)
    - Added SESSION_NOTES.md for context recovery
 
+2. **Deployment Preparation**
+   - Created `vercel.json` configuration for Vercel deployment
+   - Created `DEPLOYMENT.md` with step-by-step deployment guide
+   - Verified OAuth redirects use `window.location.origin` (works with any domain)
+   - Ready for Vercel deployment
+
 ### Technical Decisions Made
 
 #### Authentication Architecture

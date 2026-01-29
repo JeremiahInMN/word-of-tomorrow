@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Share2, Volume2, Pause, Info, Maximize2, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Share2, Volume2, Pause, Info, Maximize2, X, Copy, Check } from 'lucide-react';
 import { WordDefinition } from '../types';
 
 interface WordCardProps {
@@ -11,6 +11,9 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
   const [isExpanded, setIsExpanded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
 
   const handlePlayAudio = () => {
     if (!wordData.audioUrl) return;
@@ -36,6 +39,50 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
     }
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: `Word of Tomorrow: ${wordData.word}`,
+      text: `Check out this made-up word: "${wordData.word}" - ${wordData.definition}`,
+      url: 'https://wordoftomorrow.com/'
+    };
+
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        setIsShareMenuOpen(true);
+      }
+    } catch (err) {
+      // User cancelled share or error occurred
+      console.log('Share cancelled or failed:', err);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText('https://wordoftomorrow.com/');
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+      setIsShareMenuOpen(false);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  // Close share menu when clicking outside
+  useEffect(() => {
+    if (!isShareMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setIsShareMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isShareMenuOpen]);
+
   return (
     <>
       <div className={`bg-surface rounded-lg border-2 border-ink/10 shadow-[4px_4px_0px_0px_rgba(var(--c-ink),0.1)] overflow-hidden max-w-4xl mx-auto transition-colors duration-300 ${preview ? 'scale-95' : ''}`}>
@@ -53,7 +100,7 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
               </div>
             </div>
             
-            <div className="flex gap-2 mt-6 sm:mt-0">
+            <div className="flex gap-2 mt-6 sm:mt-0 relative" ref={shareMenuRef}>
               {wordData.audioUrl && (
                 <button 
                   onClick={handlePlayAudio}
@@ -64,9 +111,28 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
                 </button>
               )}
               {!preview && (
-                <button className="p-3 rounded-full hover:bg-ink/5 text-ink transition-colors h-fit">
-                  <Share2 size={24} />
-                </button>
+                <>
+                  <button 
+                    onClick={handleShare}
+                    className="p-3 rounded-full hover:bg-ink/5 text-ink transition-colors h-fit"
+                    title="Share this word"
+                  >
+                    <Share2 size={24} />
+                  </button>
+                  
+                  {/* Share Menu Dropdown */}
+                  {isShareMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 bg-surface border-2 border-ink/10 rounded-lg shadow-[4px_4px_0px_0px_rgba(var(--c-ink),0.1)] z-50 w-48 overflow-hidden">
+                      <button 
+                        onClick={copyToClipboard}
+                        className="w-full px-4 py-3 text-left hover:bg-ink/5 transition-colors text-sm flex items-center justify-between text-ink"
+                      >
+                        <span>Copy Link</span>
+                        {copySuccess ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

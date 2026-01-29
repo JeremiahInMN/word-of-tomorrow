@@ -16,11 +16,15 @@
    - **Committed to git:** Auth system committed (commit hash: 1190f67)
    - Added SESSION_NOTES.md for context recovery
 
-2. **Deployment Preparation**
-   - Created `vercel.json` configuration for Vercel deployment
-   - Created `DEPLOYMENT.md` with step-by-step deployment guide
-   - Verified OAuth redirects use `window.location.origin` (works with any domain)
-   - Ready for Vercel deployment
+2. **Vercel Deployment & Supabase Integration** ✅
+   - Deployed to Vercel at: `https://word-of-tomorrow.vercel.app`
+   - Added Supabase redirect URLs to authentication settings:
+     - `https://word-of-tomorrow.vercel.app/auth/callback`
+     - `https://word-of-tomorrow.vercel.app/**`
+   - Added environment variables to Vercel:
+     - `VITE_SUPABASE_URL`
+     - `VITE_SUPABASE_ANON_KEY`
+   - Deployment successful and working
 
 ### Technical Decisions Made
 
@@ -110,6 +114,10 @@ There are uncommitted changes in the working directory that predate this session
 
 ## Roadmap / Future Plans
 
+### Next Steps 🎯
+- [ ] **Custom Domain Setup** - Connect Namecheap domain to Vercel deployment
+- [ ] **App Bug Fixes & Improvements** - Address any issues in the application
+
 ### Authentication & Authorization
 - [ ] Add role-based permissions (editor, moderator, admin)
 - [ ] User profile page
@@ -168,6 +176,16 @@ VITE_SUPABASE_ANON_KEY=<your-key>
 - Google OAuth provider enabled in Supabase Dashboard
 - RLS policies enabled on `words` and `submissions` tables
 - Admin user manually set via SQL
+- **Redirect URLs configured:**
+  - `https://word-of-tomorrow.vercel.app/auth/callback`
+  - `https://word-of-tomorrow.vercel.app/**`
+
+### Vercel Deployment
+- **Live URL:** `https://word-of-tomorrow.vercel.app`
+- **Environment Variables Set:**
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+- **Next:** Custom domain setup (Namecheap domain purchased, needs DNS configuration)
 
 ---
 
@@ -225,9 +243,9 @@ If you need to quickly restore context, paste this:
 
 ```
 I'm working on Word of Tomorrow, a React/TypeScript app with Supabase backend. 
-We just finished implementing Google OAuth authentication with protected admin routes.
+We just finished deploying to Vercel (https://word-of-tomorrow.vercel.app) with Supabase integration complete.
 The auth system uses a dedicated authClient to avoid request conflicts.
 Current user (jeremiah.l.peterson@gmail.com) is set as admin.
-Everything is working. Please read SESSION_NOTES.md for full context.
-What should we work on next?
+Next steps: 1) Setup custom domain from Namecheap, 2) Fix app bugs/improvements.
+Please read SESSION_NOTES.md for full context.
 ```

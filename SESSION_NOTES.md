@@ -1,6 +1,6 @@
 # Word of Tomorrow - Development Session Notes
 
-**Last Updated:** January 25, 2026
+**Last Updated:** January 29, 2026
 
 ---
 
@@ -25,6 +25,24 @@
      - `VITE_SUPABASE_URL`
      - `VITE_SUPABASE_ANON_KEY`
    - Deployment successful and working
+
+3. **Custom Domain Setup** ✅
+   - Connected custom domain: `https://wordoftomorrow.com`
+   - Configured DNS records in Namecheap (apex + www subdomain)
+   - Updated Supabase redirect URLs for custom domain:
+     - `https://wordoftomorrow.com/auth/callback`
+     - `https://wordoftomorrow.com/**`
+     - `https://www.wordoftomorrow.com/auth/callback`
+     - `https://www.wordoftomorrow.com/**`
+   - Updated Google OAuth authorized origins
+   - Updated Supabase Site URL to custom domain
+
+4. **Social Sharing Feature** ✅
+   - Implemented native Web Share API for mobile devices
+   - Added fallback dropdown menu for desktop browsers
+   - Copy link functionality with visual feedback
+   - Added Open Graph and Twitter Card meta tags
+   - **Committed to git:** Social sharing feature (commit hash: b6df314)
 
 ### Technical Decisions Made
 
@@ -106,17 +124,37 @@ There are uncommitted changes in the working directory that predate this session
 - ~~AbortError during OAuth callback~~ - Fixed with dedicated authClient
 - ~~Race condition between init() and SIGNED_IN event~~ - Fixed by returning early from init()
 - ~~Double hash in OAuth redirect URL (`/#/#`)~~ - Handled with custom parsing
+- ~~Audio playback not working~~ - Fixed by correcting MIME type in upload process (changed .bin to .wav with proper Content-Type)
+- ~~Share button non-functional~~ - Implemented native share API + copy link fallback
 
 ### Current Issues
-- None currently blocking
+
+#### Facebook Mobile Share Limitation 🔄 (Deferred)
+- **Issue:** When sharing to Facebook via mobile native share API, only the URL is shared (not the word text + definition)
+- **Root Cause:** Facebook mobile app ignores the `text` field from Web Share API by design (anti-spam measure)
+- **Current Behavior:** 
+  - Mobile users see native share sheet with full text
+  - Facebook app only uses the URL and fetches Open Graph preview
+  - Generic site preview shown (not word-specific)
+- **Potential Solutions:**
+  1. **Create individual word pages** with dynamic Open Graph tags (best long-term solution)
+     - Requires: New routes `/word/[id]`, dynamic meta tags, SSR or Edge Functions
+     - Effort: Medium-High (3-4 hours)
+     - Benefits: Proper social previews, SEO benefits, professional approach
+  2. **Improve copy link functionality** to copy text + URL together
+     - Users manually paste into Facebook
+     - Effort: Low (15 minutes)
+  3. **Accept current behavior** as Facebook platform limitation
+- **Decision:** Deferred to focus on more important features. Revisit when individual word pages are needed.
+- **Workaround:** Users can manually add text when sharing to Facebook
 
 ---
 
 ## Roadmap / Future Plans
 
 ### Next Steps 🎯
-- [ ] **Custom Domain Setup** - Connect Namecheap domain to Vercel deployment
-- [ ] **App Bug Fixes & Improvements** - Address any issues in the application
+- ✅ ~~Custom Domain Setup~~ - COMPLETED (wordoftomorrow.com connected)
+- ✅ ~~Social Sharing Feature~~ - COMPLETED (native share API + copy link)
 
 ### Authentication & Authorization
 - [ ] Add role-based permissions (editor, moderator, admin)
@@ -144,9 +182,20 @@ There are uncommitted changes in the working directory that predate this session
 ### User Experience
 - [ ] Email notifications for new words
 - [ ] Word of the day RSS feed
-- [ ] Social sharing for words
+- ✅ ~~Social sharing for words~~ - COMPLETED (native share + copy link)
 - [ ] Search/filter in archive
 - [ ] Calendar view for scheduled words
+
+### Social Sharing & SEO
+- [ ] **Create individual word pages** - `/word/[id]` or `/word/[date]` routes
+  - Enables dynamic Open Graph tags per word
+  - Improves Facebook/Twitter share previews
+  - SEO benefits for individual words
+  - Shareable links to specific words
+  - **Priority:** Medium (deferred after Facebook share limitation discussion)
+- [ ] Enhance copy link to include word text + URL
+- [ ] Add share analytics tracking
+- [ ] Create custom Open Graph image (logo/banner)
 
 ### Technical Improvements
 - [ ] Add comprehensive error handling
@@ -169,7 +218,11 @@ VITE_SUPABASE_ANON_KEY=<your-key>
 
 ### Google OAuth Setup
 - **OAuth Client ID:** Configured in Google Cloud Console
-- **Authorized Origins:** `http://localhost:3000`, `https://zvvzbstfuqdaavswtxlb.supabase.co`
+- **Authorized Origins:** 
+  - `http://localhost:3000`
+  - `https://zvvzbstfuqdaavswtxlb.supabase.co`
+  - `https://wordoftomorrow.com`
+  - `https://www.wordoftomorrow.com`
 - **Redirect URI:** `https://zvvzbstfuqdaavswtxlb.supabase.co/auth/v1/callback`
 
 ### Supabase Configuration
@@ -179,13 +232,19 @@ VITE_SUPABASE_ANON_KEY=<your-key>
 - **Redirect URLs configured:**
   - `https://word-of-tomorrow.vercel.app/auth/callback`
   - `https://word-of-tomorrow.vercel.app/**`
+  - `https://wordoftomorrow.com/auth/callback`
+  - `https://wordoftomorrow.com/**`
+  - `https://www.wordoftomorrow.com/auth/callback`
+  - `https://www.wordoftomorrow.com/**`
+- **Site URL:** `https://wordoftomorrow.com`
 
 ### Vercel Deployment
-- **Live URL:** `https://word-of-tomorrow.vercel.app`
+- **Live URL:** `https://wordoftomorrow.com` (primary)
+- **Vercel URL:** `https://word-of-tomorrow.vercel.app` (fallback)
 - **Environment Variables Set:**
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
-- **Next:** Custom domain setup (Namecheap domain purchased, needs DNS configuration)
+- **Custom Domain:** Configured via Namecheap DNS (A record + CNAME for www)
 
 ---
 
@@ -243,9 +302,9 @@ If you need to quickly restore context, paste this:
 
 ```
 I'm working on Word of Tomorrow, a React/TypeScript app with Supabase backend. 
-We just finished deploying to Vercel (https://word-of-tomorrow.vercel.app) with Supabase integration complete.
-The auth system uses a dedicated authClient to avoid request conflicts.
+App is deployed at https://wordoftomorrow.com with Google OAuth authentication.
+Recent work: Added social sharing feature (native share API + copy link).
+Known limitation: Facebook mobile share only shows URL (need individual word pages for full text preview).
 Current user (jeremiah.l.peterson@gmail.com) is set as admin.
-Next steps: 1) Setup custom domain from Namecheap, 2) Fix app bugs/improvements.
 Please read SESSION_NOTES.md for full context.
 ```

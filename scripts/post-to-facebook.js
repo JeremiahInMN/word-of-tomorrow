@@ -1,9 +1,10 @@
 // Facebook Posting Script for Word of Tomorrow
-// Posts the Word of the Day to Facebook page with illustration
+// Generates content for manual posting to Facebook (with image support)
 
 import fetch from 'node-fetch';
-import FormData from 'form-data';
 import { createClient } from '@supabase/supabase-js';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -36,7 +37,7 @@ function getTomorrowDate() {
   return tomorrow.toISOString().split('T')[0];
 }
 
-// Format the Facebook post message
+// Format the Facebook post message with hashtags disclaimer at bottom
 function formatMessage(word) {
   return `📖 Word of Tomorrow
 
@@ -51,7 +52,9 @@ ${word.example}
 Origin:
 ${word.origin}
 
-🌐 Learn more at wordoftomorrow.com`;
+🌐 Learn more at wordoftomorrow.com
+
+#satire #notarealword #entertainment #madeupwords #wordoftheday`;
 }
 
 // Download image from URL to buffer
@@ -68,45 +71,38 @@ async function downloadImage(url) {
   return buffer;
 }
 
-// Post to Facebook with image
-async function postToFacebook(message, imageBuffer) {
-  console.log('📤 Posting to Facebook...');
+// Save image locally for manual upload
+function saveImageLocally(imageBuffer, word) {
+  const date = getTomorrowDate();
+  const dirPath = join(process.cwd(), 'facebook-posts', date);
   
-  const form = new FormData();
-  form.append('message', message);
-  form.append('source', imageBuffer, {
-    filename: 'word-illustration.jpg',
-    contentType: 'image/jpeg'
-  });
-  form.append('access_token', FB_PAGE_ACCESS_TOKEN);
-  
-  const response = await fetch(
-    `https://graph.facebook.com/v18.0/${FB_PAGE_ID}/photos`,
-    {
-      method: 'POST',
-      body: form,
-      headers: form.getHeaders()
-    }
-  );
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(`Facebook API error: ${JSON.stringify(data)}`);
+  // Create directory if it doesn't exist
+  if (!existsSync(dirPath)) {
+    mkdirSync(dirPath, { recursive: true });
   }
   
-  // Fetch the post's permalink URL for a shareable link
-  if (data.post_id) {
-    const permalinkResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${data.post_id}?fields=permalink_url&access_token=${FB_PAGE_ACCESS_TOKEN}`
-    );
-    const permalinkData = await permalinkResponse.json();
-    if (permalinkData.permalink_url) {
-      data.permalink_url = permalinkData.permalink_url;
-    }
+  const filename = `${word.word.toLowerCase()}.jpg`;
+  const filepath = join(dirPath, filename);
+  writeFileSync(filepath, imageBuffer);
+  console.log(`💾 Image saved to: ${filepath}`);
+  return filepath;
+}
+
+// Save post text to file for easy copying
+function saveTextLocally(message, word) {
+  const date = getTomorrowDate();
+  const dirPath = join(process.cwd(), 'facebook-posts', date);
+  
+  // Create directory if it doesn't exist
+  if (!existsSync(dirPath)) {
+    mkdirSync(dirPath, { recursive: true });
   }
   
-  return data;
+  const filename = `${word.word.toLowerCase()}.txt`;
+  const filepath = join(dirPath, filename);
+  writeFileSync(filepath, message, 'utf-8');
+  console.log(`📄 Text saved to: ${filepath}`);
+  return filepath;
 }
 
 // Main function
@@ -136,38 +132,43 @@ async function main() {
     const word = words[0];
     console.log(`✅ Found word: "${word.word}"`);
     
-    // Check if word has illustration
-    if (!word.illustration_url) {
-      console.log('ℹ️  Word has no illustration. Skipping post.');
-      process.exit(0);
-    }
-    
-    console.log(`🖼️  Illustration URL: ${word.illustration_url}`);
-    
-    // Download illustration
-    const imageBuffer = await downloadImage(word.illustration_url);
-    
     // Format message
     const message = formatMessage(word);
-    console.log('📝 Post message:');
-    console.log('---');
-    console.log(message);
-    console.log('---');
     
-    // Post to Facebook
-    const result = await postToFacebook(message, imageBuffer);
-    
-    console.log('✅ Successfully posted to Facebook!');
-    console.log(`📍 Photo ID: ${result.id}`);
-    if (result.post_id) {
-      console.log(`📍 Post ID: ${result.post_id}`);
-    }
-    if (result.permalink_url) {
-      console.log(`🔗 Post URL: ${result.permalink_url}`);
+    // Check if word has illustration
+    let imagePath = null;
+    if (word.illustration_url) {
+      console.log(`🖼️  Illustration URL: ${word.illustration_url}`);
+      
+      // Download and save illustration locally
+      try {
+        const imageBuffer = await downloadImage(word.illustration_url);
+        imagePath = saveImageLocally(imageBuffer, word);
+      } catch (error) {
+        console.warn(`⚠️  Could not download illustration: ${error.message}`);
+        console.log('ℹ️  Continuing without image...');
+      }
     } else {
-      // Fallback to page URL if permalink not available
-      console.log(`🔗 View on page: https://www.facebook.com/${FB_PAGE_ID}`);
+      console.log('ℹ️  Word has no illustration.');
     }
+    
+    // Save text to file for easy copying
+    const textPath = saveTextLocally(message, word);
+    
+    // Output content for manual posting
+    console.log('\n' + '='.repeat(80));
+    console.log('📋 COPY THIS TEXT TO POST TO FACEBOOK:');
+    console.log('='.repeat(80));
+    console.log(message);
+    console.log('='.repeat(80));
+    
+    console.log(`\n📄 Text saved to: ${textPath}`);
+    if (imagePath) {
+      console.log(`📸 Image saved to: ${imagePath}`);
+    }
+    console.log(`\n🌐 Facebook Page: https://www.facebook.com/${FB_PAGE_ID}`);
+    console.log('\n✅ Content ready for manual posting!');
+    console.log('   TIP: Open the .txt file and copy the text from there.');
     
   } catch (error) {
     console.error('❌ Error:', error.message);

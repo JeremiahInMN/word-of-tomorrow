@@ -1,9 +1,10 @@
 name: Post to Facebook
 
 on:
-  # Run daily at 8:00 AM UTC
-  schedule:
-    - cron: '0 8 * * *'
+  # DISABLED: Automatic posting blocked by Facebook for new pages
+  # Re-enable after page has 20+ followers and established credibility
+  # schedule:
+  #   - cron: '0 8 * * *'
   
   # Allow manual triggering for testing
   workflow_dispatch:

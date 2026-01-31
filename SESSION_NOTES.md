@@ -44,15 +44,17 @@
    - Added Open Graph and Twitter Card meta tags
    - **Committed to git:** Social sharing feature (commit hash: b6df314)
 
-5. **Automated Facebook Page Posting** ✅
-   - Implemented GitHub Actions workflow for daily posting at 8:00 AM UTC
-   - Created posting script that fetches word from Supabase and posts to Facebook
-   - Posts include: word, pronunciation, definition, example, origin, and illustration image
+5. **Automated Facebook Page Posting** ⚠️ (Manual Posting with Images)
+   - Implemented GitHub Actions workflow for daily posting at 8:00 AM UTC (disabled)
+   - Created posting script that fetches word from Supabase and generates formatted content
+   - **Posts include:** word, pronunciation, definition, example, origin with satire disclaimer
+   - **Image support:** Script downloads illustration and saves locally for manual upload
    - Tested Facebook Graph API connection successfully
    - Configured GitHub Secrets: `FB_PAGE_ID`, `FB_PAGE_ACCESS_TOKEN`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-   - Smart posting logic: skips posting if no word scheduled or no illustration available
-   - Manual trigger available for testing via GitHub Actions UI
    - **Target:** Word of Tomorrow Facebook Entertainment Page (ID: 891171130756125)
+   - **Issue:** Facebook blocks API posts from new pages (low follower count = high spam scrutiny)
+   - **Current Solution:** Run script locally to generate content + download image, post manually to Facebook
+   - **Automatic posting disabled** until page has 20+ followers and proven credibility
 
 ### Technical Decisions Made
 
@@ -89,22 +91,39 @@
 
 #### Facebook Posting Architecture
 - **Why GitHub Actions for posting?**
-  - Scheduled automation runs at 8:00 AM UTC daily
+  - Scheduled automation runs at 8:00 AM UTC daily (when page is established)
   - No need for separate server infrastructure
   - Uses repository secrets for secure token storage
   - Easy manual triggering for testing
 
-- **Why skip posts without illustrations?**
-  - Facebook visual content performs significantly better
-  - Maintains consistent brand quality
-  - Image is a key part of the Word of Tomorrow experience
+- **Why text-only posts (no images)?**
+   - ~~Testing revealed Facebook blocks AI-generated images~~ - UPDATED: Now includes images!
+   - Script downloads illustration from Supabase and saves locally
+   - User manually uploads image when posting to Facebook
+   - Allows full visual impact while avoiding API posting blocks
 
-- **Posting Flow:**
-  1. GitHub Actions triggers at 8:00 AM UTC (or manual trigger)
-  2. Script queries Supabase for today's published word
-  3. Validates word exists and has illustration
-  4. Downloads illustration from Supabase Storage
-  5. Posts to Facebook Graph API `/photos` endpoint
+- **Why manual posting currently required?**
+  - Facebook heavily scrutinizes API posts from new pages (< 10-20 followers)
+  - New pages with low engagement are flagged as potential spam
+  - Same content works fine when posted manually through Facebook UI
+  - Once page has credibility (20+ followers, regular engagement), API posting will work
+
+- **Current Workflow:**
+  1. Run `node scripts/post-to-facebook.js` locally each day
+  2. Script fetches tomorrow's word and generates formatted post
+  3. Script downloads illustration image and saves as `word-[name]-[date].jpg`
+  4. Copy the formatted text output
+  5. Go to Facebook page and create new post
+  6. Paste text and upload the downloaded image
+  7. Takes ~1 minute per day
+  8. After 2-4 weeks with consistent posting, re-enable automatic posting
+
+- **Posting Flow (when automated):**
+  1. GitHub Actions triggers at 8:00 AM UTC (currently disabled)
+  2. Script queries Supabase for tomorrow's published word
+  3. Validates word exists
+  4. Formats message with satire disclaimer
+  5. Posts to Facebook Graph API `/feed` endpoint
   6. Logs success or error (fails gracefully if no content)
 
 ---

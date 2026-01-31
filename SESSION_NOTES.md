@@ -1,6 +1,6 @@
 # Word of Tomorrow - Development Session Notes
 
-**Last Updated:** January 29, 2026
+**Last Updated:** January 30, 2026
 
 ---
 
@@ -44,6 +44,16 @@
    - Added Open Graph and Twitter Card meta tags
    - **Committed to git:** Social sharing feature (commit hash: b6df314)
 
+5. **Automated Facebook Page Posting** ✅
+   - Implemented GitHub Actions workflow for daily posting at 8:00 AM UTC
+   - Created posting script that fetches word from Supabase and posts to Facebook
+   - Posts include: word, pronunciation, definition, example, origin, and illustration image
+   - Tested Facebook Graph API connection successfully
+   - Configured GitHub Secrets: `FB_PAGE_ID`, `FB_PAGE_ACCESS_TOKEN`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+   - Smart posting logic: skips posting if no word scheduled or no illustration available
+   - Manual trigger available for testing via GitHub Actions UI
+   - **Target:** Word of Tomorrow Facebook Entertainment Page (ID: 891171130756125)
+
 ### Technical Decisions Made
 
 #### Authentication Architecture
@@ -77,6 +87,26 @@
 - Status: `is_admin = true` (set via SQL)
 - Access: Can see Admin link in navbar, access /admin route
 
+#### Facebook Posting Architecture
+- **Why GitHub Actions for posting?**
+  - Scheduled automation runs at 8:00 AM UTC daily
+  - No need for separate server infrastructure
+  - Uses repository secrets for secure token storage
+  - Easy manual triggering for testing
+
+- **Why skip posts without illustrations?**
+  - Facebook visual content performs significantly better
+  - Maintains consistent brand quality
+  - Image is a key part of the Word of Tomorrow experience
+
+- **Posting Flow:**
+  1. GitHub Actions triggers at 8:00 AM UTC (or manual trigger)
+  2. Script queries Supabase for today's published word
+  3. Validates word exists and has illustration
+  4. Downloads illustration from Supabase Storage
+  5. Posts to Facebook Graph API `/photos` endpoint
+  6. Logs success or error (fails gracefully if no content)
+
 ---
 
 ## Project Structure
@@ -98,6 +128,11 @@
 - **Configuration:**
   - `.env` - Contains Supabase credentials (gitignored)
   - `supabase-schema.sql` - Database schema (words, submissions tables)
+  - `.github/workflows/post-to-facebook.yml` - Daily Facebook posting automation
+
+- **Scripts:**
+  - `scripts/generate-word.js` - AI word generation script
+  - `scripts/post-to-facebook.js` - Facebook posting automation
 
 ### Tech Stack
 - **Frontend:** React 19, TypeScript, Vite
@@ -106,6 +141,7 @@
 - **Styling:** Tailwind CSS
 - **Icons:** Lucide React
 - **AI:** Google Gemini, Anthropic Claude (for word generation)
+- **Automation:** GitHub Actions (for scheduled Facebook posting)
 
 ---
 
@@ -214,6 +250,10 @@ There are uncommitted changes in the working directory that predate this session
 ```bash
 VITE_SUPABASE_URL=https://zvvzbstfuqdaavswtxlb.supabase.co
 VITE_SUPABASE_ANON_KEY=<your-key>
+
+# For local testing of Facebook posting script (optional)
+FB_PAGE_ID=891171130756125
+FB_PAGE_ACCESS_TOKEN=<your-long-lived-page-token>
 ```
 
 ### Google OAuth Setup
@@ -246,6 +286,20 @@ VITE_SUPABASE_ANON_KEY=<your-key>
   - `VITE_SUPABASE_ANON_KEY`
 - **Custom Domain:** Configured via Namecheap DNS (A record + CNAME for www)
 
+### GitHub Actions / Secrets
+- **Repository Secrets Configured:**
+  - `FB_PAGE_ID` - Facebook page ID (891171130756125)
+  - `FB_PAGE_ACCESS_TOKEN` - Long-lived page access token (~60 day expiry)
+  - `VITE_SUPABASE_URL` - Supabase project URL
+  - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
+
+- **Automated Workflows:**
+  - **Post to Facebook** - Runs daily at 8:00 AM UTC
+    - Posts Word of the Day to Facebook page
+    - Includes formatted text and illustration image
+    - Skips gracefully if no word or no image
+    - Can be manually triggered via Actions tab for testing
+
 ---
 
 ## Development Commands
@@ -254,6 +308,9 @@ npm run dev       # Start dev server (port 3000)
 npm run build     # Build for production
 npm run preview   # Preview production build
 npm run generate  # Generate new word with AI
+
+# Facebook posting (requires FB_PAGE_ID and FB_PAGE_ACCESS_TOKEN in .env)
+node scripts/post-to-facebook.js  # Test Facebook posting locally
 ```
 
 ---
@@ -277,6 +334,47 @@ npm run generate  # Generate new word with AI
 - Sessions stored in browser localStorage
 - Auto-refresh token enabled
 - Shared between `supabase` and `authClient` instances
+
+### Facebook Posting
+- **Schedule:** Daily at 8:00 AM UTC via GitHub Actions
+- **Post Format:**
+  ```
+  📖 Word of Tomorrow
+
+  [WORD] ([pronunciation]) — [part of speech]
+
+  Definition:
+  [definition]
+
+  Example:
+  "[example]"
+
+  Origin:
+  [origin]
+
+  🌐 Learn more at wordoftomorrow.com
+  ```
+  Plus the illustration image attached
+
+- **Post Requirements:**
+  - Word must be scheduled for today with `status = 'published'`
+  - Word must have an `illustrationUrl` (skips if missing)
+  - Illustration must be publicly accessible (Supabase Storage URL)
+
+- **Testing Workflow:**
+  1. Go to GitHub repository → Actions tab
+  2. Select "Post to Facebook" workflow
+  3. Click "Run workflow" → "Run workflow" button
+  4. Watch logs to see if posting succeeds
+  5. Check Facebook page for the post
+
+- **Troubleshooting:**
+  - **No post appears:** Check GitHub Actions logs for errors
+  - **"No word scheduled":** Ensure a word is scheduled for today's date
+  - **"No illustration":** Word needs an illustrationUrl in Supabase
+  - **"Invalid token":** Facebook page access token may have expired (refresh ~every 60 days)
+  - **Image download fails:** Check illustration URL is publicly accessible
+  - **Facebook API error:** Check token permissions include `pages_manage_posts`
 
 ---
 
@@ -303,7 +401,8 @@ If you need to quickly restore context, paste this:
 ```
 I'm working on Word of Tomorrow, a React/TypeScript app with Supabase backend. 
 App is deployed at https://wordoftomorrow.com with Google OAuth authentication.
-Recent work: Added social sharing feature (native share API + copy link).
+Recent work: Added automated Facebook posting feature that posts Word of the Day at 8am UTC daily.
+Facebook page: Word of Tomorrow (ID: 891171130756125)
 Known limitation: Facebook mobile share only shows URL (need individual word pages for full text preview).
 Current user (jeremiah.l.peterson@gmail.com) is set as admin.
 Please read SESSION_NOTES.md for full context.

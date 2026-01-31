@@ -28,10 +28,12 @@ if (!FB_PAGE_ID || !FB_PAGE_ACCESS_TOKEN || !SUPABASE_URL || !SUPABASE_ANON_KEY)
 // Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Get today's date in YYYY-MM-DD format
-function getTodayDate() {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
+// Get tomorrow's date in YYYY-MM-DD format
+// "Word of Tomorrow" shows the word scheduled for tomorrow's date
+function getTomorrowDate() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0];
 }
 
 // Format the Facebook post message
@@ -100,14 +102,14 @@ async function postToFacebook(message, imageBuffer) {
 async function main() {
   try {
     console.log('🚀 Starting Facebook posting script...');
-    console.log(`📅 Today's date: ${getTodayDate()}`);
+    console.log(`📅 Tomorrow's date: ${getTomorrowDate()}`);
     
-    // Fetch today's word from Supabase
-    console.log('🔍 Fetching today\'s word from Supabase...');
+    // Fetch tomorrow's word from Supabase (matching website's "Word of Tomorrow" concept)
+    console.log('🔍 Fetching tomorrow\'s word from Supabase...');
     const { data: words, error } = await supabase
       .from('words')
       .select('*')
-      .eq('scheduled_date', getTodayDate())
+      .eq('scheduled_date', getTomorrowDate())
       .eq('status', 'published');
     
     if (error) {
@@ -116,7 +118,7 @@ async function main() {
     
     // Check if word exists
     if (!words || words.length === 0) {
-      console.log('ℹ️  No word scheduled for today. Skipping post.');
+      console.log('ℹ️  No word scheduled for tomorrow. Skipping post.');
       process.exit(0);
     }
     

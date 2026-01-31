@@ -95,6 +95,17 @@ async function postToFacebook(message, imageBuffer) {
     throw new Error(`Facebook API error: ${JSON.stringify(data)}`);
   }
   
+  // Fetch the post's permalink URL for a shareable link
+  if (data.post_id) {
+    const permalinkResponse = await fetch(
+      `https://graph.facebook.com/v18.0/${data.post_id}?fields=permalink_url&access_token=${FB_PAGE_ACCESS_TOKEN}`
+    );
+    const permalinkData = await permalinkResponse.json();
+    if (permalinkData.permalink_url) {
+      data.permalink_url = permalinkData.permalink_url;
+    }
+  }
+  
   return data;
 }
 
@@ -147,8 +158,16 @@ async function main() {
     const result = await postToFacebook(message, imageBuffer);
     
     console.log('✅ Successfully posted to Facebook!');
-    console.log(`📍 Post ID: ${result.id}`);
-    console.log(`🔗 Post URL: https://facebook.com/${result.id}`);
+    console.log(`📍 Photo ID: ${result.id}`);
+    if (result.post_id) {
+      console.log(`📍 Post ID: ${result.post_id}`);
+    }
+    if (result.permalink_url) {
+      console.log(`🔗 Post URL: ${result.permalink_url}`);
+    } else {
+      // Fallback to page URL if permalink not available
+      console.log(`🔗 View on page: https://www.facebook.com/${FB_PAGE_ID}`);
+    }
     
   } catch (error) {
     console.error('❌ Error:', error.message);

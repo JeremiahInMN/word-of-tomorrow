@@ -1,12 +1,26 @@
 # Word of Tomorrow - Development Session Notes
 
-**Last Updated:** January 30, 2026
+**Last Updated:** February 3, 2026
 
 ---
 
 ## Current Session Summary
 
 ### What We Just Completed ✅
+
+1. **Share Button Removal** (February 3, 2026)
+   - Removed share button feature from WordCard component
+   - Cleaned up all share-related code:
+     - Removed Share2, Copy, Check icon imports
+     - Removed state variables: isShareMenuOpen, copySuccess, shareMenuRef
+     - Removed handleShare() and copyToClipboard() functions
+     - Removed click-outside handler useEffect
+     - Removed share button JSX and dropdown menu
+   - Simplified WordCard component to only show audio playback button
+   - **Reason:** Feature not being used, decided to simplify the interface
+
+### Previous Session Completions ✅
+
 1. **Google OAuth Authentication Implementation**
    - Integrated Google OAuth for user sign-in
    - Created protected admin route requiring authentication
@@ -37,12 +51,12 @@
    - Updated Google OAuth authorized origins
    - Updated Supabase Site URL to custom domain
 
-4. **Social Sharing Feature** ✅
-   - Implemented native Web Share API for mobile devices
-   - Added fallback dropdown menu for desktop browsers
+4. **Social Sharing Feature** ✅ ⚠️ REMOVED (Feb 3, 2026)
+   - Previously implemented native Web Share API for mobile devices
+   - Had fallback dropdown menu for desktop browsers
    - Copy link functionality with visual feedback
    - Added Open Graph and Twitter Card meta tags
-   - **Committed to git:** Social sharing feature (commit hash: b6df314)
+   - **Note:** Feature was removed as it was not being used (see current session)
 
 5. **Automated Facebook Page Posting** ⚠️ (Manual Posting with Images)
    - Implemented GitHub Actions workflow for daily posting at 8:00 AM UTC (disabled)
@@ -180,28 +194,14 @@ There are uncommitted changes in the working directory that predate this session
 - ~~Race condition between init() and SIGNED_IN event~~ - Fixed by returning early from init()
 - ~~Double hash in OAuth redirect URL (`/#/#`)~~ - Handled with custom parsing
 - ~~Audio playback not working~~ - Fixed by correcting MIME type in upload process (changed .bin to .wav with proper Content-Type)
-- ~~Share button non-functional~~ - Implemented native share API + copy link fallback
+- ~~Share button non-functional~~ - Was implemented with native share API + copy link fallback, later removed (Feb 3, 2026)
 
 ### Current Issues
 
-#### Facebook Mobile Share Limitation 🔄 (Deferred)
-- **Issue:** When sharing to Facebook via mobile native share API, only the URL is shared (not the word text + definition)
-- **Root Cause:** Facebook mobile app ignores the `text` field from Web Share API by design (anti-spam measure)
-- **Current Behavior:** 
-  - Mobile users see native share sheet with full text
-  - Facebook app only uses the URL and fetches Open Graph preview
-  - Generic site preview shown (not word-specific)
-- **Potential Solutions:**
-  1. **Create individual word pages** with dynamic Open Graph tags (best long-term solution)
-     - Requires: New routes `/word/[id]`, dynamic meta tags, SSR or Edge Functions
-     - Effort: Medium-High (3-4 hours)
-     - Benefits: Proper social previews, SEO benefits, professional approach
-  2. **Improve copy link functionality** to copy text + URL together
-     - Users manually paste into Facebook
-     - Effort: Low (15 minutes)
-  3. **Accept current behavior** as Facebook platform limitation
-- **Decision:** Deferred to focus on more important features. Revisit when individual word pages are needed.
-- **Workaround:** Users can manually add text when sharing to Facebook
+#### Facebook Mobile Share Limitation 🔄 (N/A - Feature Removed)
+- **Status:** Share feature was removed on Feb 3, 2026 as it was not being used
+- **Previous Issue:** Facebook mobile app ignored the `text` field from Web Share API
+- **Resolution:** Feature discontinued, this issue is no longer relevant
 
 ---
 
@@ -209,7 +209,7 @@ There are uncommitted changes in the working directory that predate this session
 
 ### Next Steps 🎯
 - ✅ ~~Custom Domain Setup~~ - COMPLETED (wordoftomorrow.com connected)
-- ✅ ~~Social Sharing Feature~~ - COMPLETED (native share API + copy link)
+- ✅ ~~Social Sharing Feature~~ - COMPLETED then REMOVED (Feb 3, 2026 - not being used)
 
 ### Authentication & Authorization
 - [ ] Add role-based permissions (editor, moderator, admin)
@@ -237,7 +237,7 @@ There are uncommitted changes in the working directory that predate this session
 ### User Experience
 - [ ] Email notifications for new words
 - [ ] Word of the day RSS feed
-- ✅ ~~Social sharing for words~~ - COMPLETED (native share + copy link)
+- ~~Social sharing for words~~ - REMOVED (Feb 3, 2026 - not being used)
 - [ ] Search/filter in archive
 - [ ] Calendar view for scheduled words
 

@@ -102,7 +102,7 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
                             <img 
                                 src={wordData.illustrationUrl} 
                                 alt={`Illustration of ${wordData.word}`} 
-                                className="w-full h-full object-contain mix-blend-multiply opacity-90 dark:mix-blend-screen dark:invert transition-transform duration-500 group-hover:scale-105"
+                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <span className="bg-surface/80 backdrop-blur text-ink px-3 py-1.5 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
@@ -138,7 +138,7 @@ export const WordCard: React.FC<WordCardProps> = ({ wordData, preview = false })
                 <img 
                    src={wordData.illustrationUrl} 
                    alt={`Illustration of ${wordData.word}`}
-                   className="w-full h-full object-contain mix-blend-multiply opacity-100 dark:mix-blend-screen dark:invert p-4"
+                   className="w-full h-full object-contain p-4"
                 />
                 
                 <button 
